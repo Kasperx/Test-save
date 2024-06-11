@@ -9,16 +9,13 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
-import java.util.stream.Collectors;
+import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import main.java.com.mywebsite.Data.FileSrcData;
+import main.java.com.mywebsite.database.DAO.Dao_DBConnect;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
@@ -29,20 +26,15 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.json.JSONObject;
 
 import com.google.gson.Gson;
 
-import main.java.com.mywebsite.Data.Person;
-import main.java.com.mywebsite.common.logger.Logger;
-import main.java.com.mywebsite.common.logger.LoggerConfig;
-import main.java.com.mywebsite.database.Database.DatabaseType;
-import main.java.com.mywebsite.main.DAO.Dao_Main;
 import main.java.com.mywebsite.database.DatabaseFile;
 import main.java.com.mywebsite.database.Database;
 import main.java.com.mywebsite.database.DatabaseSQLite;
+import org.apache.logging.log4j.LogManager;
 
-public class DataUse extends Dao_Main
+public class DataUse extends Dao_DBConnect
 {
     static Database databasesource;
     String httpbase;
@@ -50,10 +42,11 @@ public class DataUse extends Dao_Main
     static String htmlhead_fullSize;
     static String htmlend;
     static Database.DatabaseType databaseType;
-    static Logger logger = LoggerConfig.getLogger(DataUse.class.getName());
-    
+    static final boolean useJson = true;
+
     public DataUse()
     {
+        logger = LogManager.getLogger(DataUse.class.getName());
         ///////////////////////////////////////////
         // get libs from online
         htmlhead_halfSize = ""
@@ -66,8 +59,6 @@ public class DataUse extends Dao_Main
                 + "<script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js\"></script>"
                 + "</head>"
                 + "<body class=\"container\" style=\"font-size:30px\";>"
-//                + "<body>"
-//                + "<div class=\"container\" style=\"font-size:30px\";>"
                 ;
         htmlhead_fullSize = ""
         		+ "<!DOCTYPE html>"
@@ -78,10 +69,7 @@ public class DataUse extends Dao_Main
         		+ "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js\"></script>"
         		+ "<script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js\"></script>"
         		+ "</head>"
-        		+ "<body class=\"container-fluid\" style=\"font-size:30px\";>"
-//                + "<body>"
-//                + "<div class=\"container\" style=\"font-size:30px\";>"
-;
+        		+ "<body class=\"container-fluid\" style=\"font-size:30px\";>";
         // get libs from offline
 //        htmlhead = ""
 //                + "<!DOCTYPE html>\n"
@@ -102,10 +90,7 @@ public class DataUse extends Dao_Main
                 ;
         databaseType = Database.DatabaseType.getValue();
         databasesource = Database.getInstance(databaseType);
-//        databasesource = Database.getInstance(Database.DatabaseType.file);
-//        databasesource = Database.getInstance(Database.DatabaseType.postgres);
         databasesource.setHeaderInUppercaseCharacter(true);
-//        databasesource.getProperties(System.getProperty("user.dir")+File.separator+"login.txt");
     }
     /**
      * 
@@ -160,23 +145,16 @@ public class DataUse extends Dao_Main
     {
         try
         {
-        	initOptions(request);
+        	//initOptions(request);
             logger.info("Found request: "+request.getParameter("get"));
             response.setCharacterEncoding("utf-8");
             response.setContentType("text/html");
             response.setStatus(HttpServletResponse.SC_OK);
             String websitedata = htmlhead_halfSize;
             websitedata += "<table class=\"table\">";
-//            websitedata += "<tr>"
-//                    + "<th>name</th>"
-//                    + "</tr>"
-//                    + "</thead>";
             websitedata += ""
                     + "<ul>"
                     + "<div> some codes </div>"
-//                    + "<li><a href=\"localtion/?get=example\" target=\"_blank\">read from db</a></li>"
-//                    + "<li><a href=\"localtion/?get=insert\" target=\"_blank\">insert data</a></li>"
-//                    + "<li><a href=\"localtion/?get=data\" target=\"_blank\">get data</a></li>"
                     + "<li><a href=\"?get=insert\">insert data</a></li>"
                     + "<li><a href=\"?get=data\">get data</a></li>"
                     + "<li><a href=\"?get=admin\">get all data</a></li>"
@@ -186,9 +164,6 @@ public class DataUse extends Dao_Main
             websitedata += "</table>";
             websitedata += htmlend;
             response.getWriter().println(websitedata);
-//            PrintWriter out = response.getWriter();
-//            out.print(result);
-//            out.close();
         }
         catch (Exception e) {
             logger.error(e);
@@ -202,27 +177,20 @@ public class DataUse extends Dao_Main
     public static void clientRequest_Weather(HttpServletRequest request, HttpServletResponse response)
     {
         try {
-        	initOptions(request);
+        	//initOptions(request);
             logger.info("Found request: "+request.getParameter("get"));
             String url = "https://dwd.api.bund.dev/stationOverviewExtended";
             CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-//            Credentials credentials = new UsernamePasswordCredentials("username", "password");
             Credentials credentials = new UsernamePasswordCredentials("", "");
             credentialsProvider.setCredentials(AuthScope.ANY, credentials);
             HttpClient client = HttpClientBuilder.create()
                 .setDefaultCredentialsProvider(credentialsProvider)
                 .build();
-//            HttpPost requ = new HttpPost(url);
-            //////////////////
             URIBuilder builder = new URIBuilder();
-//            builder.setScheme("https").setHost("dwd.api.bund.dev").setPath("/stationOverviewExtended")
-//                .setParameter("stationIds", "NW");
-            // https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API key}
             builder
             .setScheme("https")
             .setHost("api.openweathermap.org")
             .setPath("/data/2.5/weather")
-//            .setParameter("zip", "E14")
             .setParameter("lon", "51.5135872")
             .setParameter("lat", "7.4652981")
             .setParameter("appid", databasesource.getProperty("key"));
@@ -230,7 +198,6 @@ public class DataUse extends Dao_Main
             logger.info(uri.toString());
             HttpGet httpget = new HttpGet(uri);
             //////////////////
-//            HttpResponse resp = client.execute(requ);
             HttpResponse resp = client.execute(httpget);
             // Get the response
             BufferedReader rd = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
@@ -252,28 +219,6 @@ public class DataUse extends Dao_Main
             logger.error(e);
         }
     }
-//    /**
-//     * @param request
-//     * @param response
-//     */
-//    public static void clientRequest_GetData(HttpServletRequest request, HttpServletResponse response)
-//    {
-//        try
-//        {
-//            logger.info("Found request: "+request.getParameter("get"));
-//            response.setCharacterEncoding("utf-8");
-//            response.setContentType("text/html");
-//            response.setStatus(HttpServletResponse.SC_OK);
-//            ArrayList <ArrayList<String>> data = databasesource.getData();
-//            String websitedata = fillWebsiteWithData(data);
-//            logger.info(websitedata);
-//            response.getWriter().append(websitedata);
-//        }
-//        catch (Exception e)
-//        {
-//            logger.error(e);
-//        }
-//    }
     /**
      * @param request
      * @param response
@@ -282,12 +227,12 @@ public class DataUse extends Dao_Main
     {
         try
         {
-        	initOptions(request);
+        	//initOptions(request);
             logger.info("Found request: "+request.getParameter("get"));
             response.setCharacterEncoding("utf-8");
             response.setStatus(HttpServletResponse.SC_OK);
 //            JSONObject data = databasesource.getDataJson();
-            ArrayList<Person> data = databasesource.getData();
+            ArrayList<FileSrcData> data = databasesource.getData();
             String websitedata = null;
             if(useJson) {
                 response.setContentType("application/json");
@@ -306,59 +251,6 @@ public class DataUse extends Dao_Main
             logger.error(e);
         }
     }
-//    public static void clientRequest_CallDataFromDb(HttpServletRequest request, HttpServletResponse response)
-//    {
-//    	try
-//    	{
-//    		logger.info("Found request: "+request.getParameter("get"));
-////            DatabaseSQLite database = new DatabaseSQLite();
-//    		ArrayList <ArrayList<String>> data = databasesource.getData();
-//    		databasesource.close();
-////            response.getWriter().println("{ \"status\": \"ok\"}");
-////            array = new JSONArray(data);
-////            json_mapForJSON = new JSONObject();
-////            json_mapForJSON.put("Tablenames", array);
-////            String result = new GsonBuilder().create().toJson(json_mapForJSON);
-//    		response.setCharacterEncoding("utf-8");
-////            response.setContentType("application/json");
-//    		response.setContentType("text/html");
-//    		response.setStatus(HttpServletResponse.SC_OK);
-//    		String websitedata = htmlhead;
-//    		websitedata += "<table class=\"table\">";
-//    		websitedata += "<tr>"
-//    				+ "<th>name</th>"
-//    				+ "</tr>"
-//    				+ "</thead>";
-////            for(String temp: data)
-////            {
-////                websitedata += "<tr><td>";
-////                websitedata += temp;
-////                websitedata += "</tr></td>";
-////            }
-//    		for(ArrayList <String> tempList: data)
-//    		{
-//    			websitedata += "<tr>";
-//    			for(String temp: tempList)
-//    			{
-//    				websitedata += "<td>";
-//    				websitedata += temp;
-//    				websitedata += "</td>";
-//    			}
-//    			websitedata += "</tr>";
-//    		}
-//    		websitedata += "</thead>";
-//    		websitedata += "</table>";
-//    		websitedata += htmlend;
-////            response.getWriter().println(websitedata);
-//    		response.getWriter().append(websitedata);
-////            PrintWriter out = response.getWriter();
-////            out.print(result);
-////            out.close();
-//    	}
-//    	catch (Exception e) {
-//    		e.printStackTrace();
-//    	}
-//    }
     /**
      * 
      * @param request
@@ -366,8 +258,7 @@ public class DataUse extends Dao_Main
      */
     public static void clientRequest_askUserData(HttpServletRequest request, HttpServletResponse response)
     {
-        try
-        {
+        try{
             response.setCharacterEncoding("utf-8");
             response.setContentType("text/html");
             response.setStatus(HttpServletResponse.SC_OK);
@@ -391,158 +282,71 @@ public class DataUse extends Dao_Main
             websitedata += "</script>";
             websitedata += htmlend;
             response.getWriter().println(websitedata);
-        }
-        catch(IOException e)
-        {
-            e.printStackTrace();
+        } catch(IOException e) {
+            logger.error(e);
         }
     }
-//    /**
-//     * 
-//     * @param request
-//     * @param response
-//     */
-//    public static void clientRequest_GetAllData(HttpServletRequest request, HttpServletResponse response)
-//    {
-//        try
-//        {
-//            logger.info("Found request: "+request.getParameter("get"));
-//            logger.info("Found request: "+request.getParameter("name"));
-//            String name = request.getParameter("user");
-//            String pw = request.getParameter("pw");
-//            if(databasesource.isPermitted(name, pw))
-//            {
-//                response.setCharacterEncoding("utf-8");
-////            response.setContentType("application/json");
-//                response.setContentType("text/html");
-//                response.setStatus(HttpServletResponse.SC_OK);
-//                ArrayList <ArrayList<String>> data = databasesource.getAllData();
-//                String websitedata = fillWebsiteWithData(data, true);
-//                response.getWriter().println(websitedata);
-//            }
-//            else
-//            {
-//                response.setCharacterEncoding("utf-8");
-//                response.setContentType("application/json");
-//                response.setStatus(HttpServletResponse.SC_OK);
-//                response.getWriter().println("{ \"status\": \"wrong data\"}");
-//            }
-//        }
-//        catch (Exception e)
-//        {
-//            e.printStackTrace();
-//        }
-//    }
-    /**
-     * 
-     * @param request
-     * @param response
-     */
-    public static void clientRequest_GetAllData(HttpServletRequest request, HttpServletResponse response)
-    {
-        try
-        {
-        	initOptions(request);
-            logger.info("Found request: "+request.getParameter("get"));
-            logger.info("Found request: "+request.getParameter("name"));
-        	String name = request.getParameter("user");
-        	String pw = request.getParameter("pw");
-            if(databasesource.isPermitted(name, pw))
-            {
-                response.setStatus(HttpServletResponse.SC_OK);
-                response.setCharacterEncoding("utf-8");
-                ArrayList<Person> data = databasesource.getAllData();
-                String websitedata = null;
-                if(useJson) {
-                    response.setContentType("application/json");
-                    Gson gson = new Gson();
-                    websitedata = gson.toJson(data);
-                } else {
-                    response.setContentType("text/html");
-                    websitedata = fillWebsiteWithData(data, true);
-                    logger.info(websitedata);
-                }
-                // without json, delete
-//                response.setContentType("text/html");
-//                response.setStatus(HttpServletResponse.SC_OK);
-//                ArrayList <ArrayList<String>> data = databasesource.getAllData();
-//                String websitedata = fillWebsiteWithData(data, true);
-                response.getWriter().println(websitedata);
-            }
-            else
-            {
-                response.setCharacterEncoding("utf-8");
-                response.setContentType("application/json");
-                response.setStatus(HttpServletResponse.SC_OK);
-                response.getWriter().println("{ \"status\": \"wrong data\"}");
-            }
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
-//    /**
-//     * 
-//     * @param data
-//     * @return
-//     */
-//    private static String fillWebsiteWithData(ArrayList<Person> data)
-//    {
-//    	return fillWebsiteWithData(data, false);
-//    }
     /**
      * @param data
      * @param admin
      * @return
      */
-	private static String fillWebsiteWithData(ArrayList<Person> data, boolean admin)
+	private static String fillWebsiteWithData(ArrayList<FileSrcData> data, boolean admin)
 	{
 		String websitedata;
 		websitedata = htmlhead_fullSize;
 		websitedata += "<h1 style='font-size:50px;'><marquee>Admin view</marquee></h1></p>";
 		websitedata += "<table class=\"table table-striped\">";
-		websitedata += "<thead>";
+		websitedata += "<thead><tr>";
 		for(int row=0; row<data.size(); row++)
 		{
 			// build header
-			Person person = data.get(row);
+			FileSrcData fileSrcData = data.get(row);
 			if(row==0)
 			{
 				websitedata += "<thead>";
-//				for(Person temp: tempList)
-//				{
-//					websitedata += ""
-//						+ "<th>"
-//						+ temp
-//						+ "</th>";	
-//				}
 				websitedata += ""
-			        + "<tr>"
-			        + "<th>"+person.getHeader_position()+"</th>"
-			        + "<th>"+person.getHeader_vorname()+"</th>"
-                    + "<th>"+person.getHeader_nachname()+"</th>"
-			        + "<th>"+person.getHeader_activity()+"</th>"
-			        + "<th>"+person.getHeader_activity_name()+"</th>"
-	                + "</tr>"
-			        ;	
-				websitedata += "</thead>";
+			        + "<th>"+fileSrcData.getHeader_ISO_3166_1_ALPHA_2()+"</th>"
+			        + "<th>"+fileSrcData.getHeader_ISO_3166_1_ALPHA_2_REGION_CODE()+"</th>"
+                    + "<th>"+fileSrcData.getHeader_REGION1()+"</th>"
+                    + "<th>"+fileSrcData.getHeader_REGION2()+"</th>"
+                    + "<th>"+fileSrcData.getHeader_REGION3()+"</th>"
+                    + "<th>"+fileSrcData.getHeader_REGION4()+"</th>"
+                    + "<th>"+fileSrcData.getHeader_POSTLEITZAHL()+"</th>"
+                    + "<th>"+fileSrcData.getHeader_ORT()+"</th>"
+                    + "<th>"+fileSrcData.getHeader_AREA1()+"</th>"
+                    + "<th>"+fileSrcData.getHeader_AREA2()+"</th>"
+                    + "<th>"+fileSrcData.getHeader_LATITUDE()+"</th>"
+                    + "<th>"+fileSrcData.getHeader_LONGITUDE()+"</th>"
+                    + "<th>"+fileSrcData.getHeader_ZEITZONE()+"</th>"
+                    + "<th>"+fileSrcData.getHeader_CALC_LOCALE()+"</th>"
+                    + "<th>"+fileSrcData.getHeader_SOMMERZEIT()+"</th>"
+                    + "<th>"+fileSrcData.getHeader_ACTIVE()+"</th>"
+	                ;
 			}
 			// build data
 			else
 			{
-				websitedata += ""
-			        + "<tr>"
-			        + "<th>"+person.getPosition()+"</th>"
-                    + "<th>"+person.getVorname()+"</th>"
-                    + "<th>"+person.getNachname()+"</th>"
-                    + "<th>"+person.getActivity()+"</th>"
-                    + "<th>"+person.getActivity_name()+"</th>"
-	                + "</tr>"
-			        ;	
-				websitedata += "</thead>";
-				websitedata += "</tr>";
-			}
+                websitedata += ""
+                        + "<th>" + fileSrcData.getISO_3166_1_ALPHA_2() + "</th>"
+                        + "<th>" + fileSrcData.getISO_3166_1_ALPHA_2_REGION_CODE() + "</th>"
+                        + "<th>" + fileSrcData.getREGION1() + "</th>"
+                        + "<th>" + fileSrcData.getREGION2() + "</th>"
+                        + "<th>" + fileSrcData.getREGION3() + "</th>"
+                        + "<th>" + fileSrcData.getREGION4() + "</th>"
+                        + "<th>" + fileSrcData.getPOSTLEITZAHL() + "</th>"
+                        + "<th>" + fileSrcData.getORT() + "</th>"
+                        + "<th>" + fileSrcData.getAREA1() + "</th>"
+                        + "<th>" + fileSrcData.getAREA2() + "</th>"
+                        + "<th>" + fileSrcData.getLATITUDE() + "</th>"
+                        + "<th>" + fileSrcData.getLONGITUDE() + "</th>"
+                        + "<th>" + fileSrcData.getZEITZONE() + "</th>"
+                        + "<th>" + fileSrcData.getCALC_LOCALE() + "</th>"
+                        //+ "<th>" + fileSrcData.getSOMMERZEIT() + "</th>"
+                        + "<th>" + fileSrcData.getACTIVE() + "</th>"
+                        ;
+            }
+            websitedata += "</tr></thead>";
 		}
 		// Add extra line for user
 		if(!admin) {
@@ -568,69 +372,61 @@ public class DataUse extends Dao_Main
 		websitedata += htmlend;
 		return websitedata;
 	}
-	private static String fillWebsiteWithData(ArrayList<Person> data)
+	private static String fillWebsiteWithData(ArrayList<FileSrcData> data)
 	{
 	    String websitedata;
         websitedata = htmlhead_halfSize;
         websitedata += "<h1 style='font-size:50px;'><marquee>User view</marquee></h1></p>";
 	    websitedata += "<table class=\"table table-striped\">";
-	    websitedata += "<thead>";
+	    websitedata += "<thead><tr>";
 	    for(int row=0; row<data.size(); row++)
 	    {
 	        // build header
-	        Person person = data.get(row);
+	        FileSrcData fileSrcData = data.get(row);
 	        if(row==0)
 	        {
-	            websitedata += "<thead>";
-//				for(Person temp: tempList)
-//				{
-//					websitedata += ""
-//						+ "<th>"
-//						+ temp
-//						+ "</th>";	
-//				}
-	            websitedata += ""
-                    + "<tr>"
-                    + "<th>"+person.getHeader_position()+"</th>"
-                    + "<th>"+person.getHeader_vorname()+"</th>"
-                    + "<th>"+person.getHeader_nachname()+"</th>"
-                    + "<th>"+person.getHeader_activity()+"</th>"
-                    + "<th>"+person.getHeader_activity_name()+"</th>"
-                    + "</tr>"
-                    ;	
-	            websitedata += "</thead>";
+	            websitedata += "<thead>"
+                        + "<th>"+fileSrcData.getHeader_ISO_3166_1_ALPHA_2()+"</th>"
+                        + "<th>"+fileSrcData.getHeader_ISO_3166_1_ALPHA_2_REGION_CODE()+"</th>"
+                        + "<th>"+fileSrcData.getHeader_REGION1()+"</th>"
+                        + "<th>"+fileSrcData.getHeader_REGION2()+"</th>"
+                        + "<th>"+fileSrcData.getHeader_REGION3()+"</th>"
+                        + "<th>"+fileSrcData.getHeader_REGION4()+"</th>"
+                        + "<th>"+fileSrcData.getHeader_POSTLEITZAHL()+"</th>"
+                        + "<th>"+fileSrcData.getHeader_ORT()+"</th>"
+                        + "<th>"+fileSrcData.getHeader_AREA1()+"</th>"
+                        + "<th>"+fileSrcData.getHeader_AREA2()+"</th>"
+                        + "<th>"+fileSrcData.getHeader_LATITUDE()+"</th>"
+                        + "<th>"+fileSrcData.getHeader_LONGITUDE()+"</th>"
+                        + "<th>"+fileSrcData.getHeader_ZEITZONE()+"</th>"
+                        + "<th>"+fileSrcData.getHeader_CALC_LOCALE()+"</th>"
+                        + "<th>"+fileSrcData.getHeader_SOMMERZEIT()+"</th>"
+                        + "<th>"+fileSrcData.getHeader_ACTIVE()+"</th>"
+                    ;
 	        }
 	        // build data
 	        else
 	        {
 	            websitedata += ""
-                    + "<tr>"
-                    + "<th>"+person.getPosition()+"</th>"
-                    + "<th>"+person.getVorname()+"</th>"
-                    + "<th>"+person.getNachname()+"</th>"
-                    + "<th>"+person.getActivity()+"</th>"
-                    + "<th>"+person.getActivity_name()+"</th>"
-                    + "</tr>"
-                    ;	
-	            websitedata += "</thead>";
-//				for(String temp: tempList)
-//				{
-//		            websitedata += "<td>";
-//		            if(admin) {
-//		                if(temp.equals(String.valueOf(1))) {
-//		                    websitedata += "yes";
-//    		            } else if(temp.equals(String.valueOf(0))) {
-//    		                websitedata += "no";
-//    		            } else {
-//    		                websitedata += temp;
-//    		            }
-//	                } else {
-//	                    websitedata += temp;
-//	                }
-//		            websitedata += "</td>";
-//				}
-	            websitedata += "</tr>";
+                        + "<th>"+fileSrcData.getISO_3166_1_ALPHA_2()+"</th>"
+                        + "<th>"+fileSrcData.getISO_3166_1_ALPHA_2_REGION_CODE()+"</th>"
+                        + "<th>"+fileSrcData.getREGION1()+"</th>"
+                        + "<th>"+fileSrcData.getREGION2()+"</th>"
+                        + "<th>"+fileSrcData.getREGION3()+"</th>"
+                        + "<th>"+fileSrcData.getREGION4()+"</th>"
+                        + "<th>"+fileSrcData.getPOSTLEITZAHL()+"</th>"
+                        + "<th>"+fileSrcData.getORT()+"</th>"
+                        + "<th>"+fileSrcData.getAREA1()+"</th>"
+                        + "<th>"+fileSrcData.getAREA2()+"</th>"
+                        + "<th>"+fileSrcData.getLATITUDE()+"</th>"
+                        + "<th>"+fileSrcData.getLONGITUDE()+"</th>"
+                        + "<th>"+fileSrcData.getZEITZONE()+"</th>"
+                        + "<th>"+fileSrcData.getCALC_LOCALE()+"</th>"
+                        //+ "<th>"+fileSrcData.getHSOMMERZEIT()+"</th>"
+                        + "<th>"+fileSrcData.getACTIVE()+"</th>"
+                    ;
 	        }
+            websitedata += "</tr></thead>";
 	    }
 	    // Add extra line for user
         websitedata += "<tr>";
@@ -654,62 +450,32 @@ public class DataUse extends Dao_Main
 	    websitedata += htmlend;
 	    return websitedata;
 	}
-//    public static void clientRequest_GetAllData(HttpServletRequest request, HttpServletResponse response)
-//    {
-//        try
-//        {
-//            JSONObject json_mapForJSON = null;
-//            logger.info("Found request: "+request.getParameter("get"));
-//            logger.info("Found request: "+request.getParameter("name"));
-//            ////////////////////
-//            DatabaseConnect database = new DatabaseConnect();
-//            if(database.isPermitted(request.getParameter("name"), request.getParameter("pw")))
-//            {
-//                logger.info();
-//            }
-//            ArrayList <String> data = database.getData();
-//            JSONArray array = new JSONArray();
-//            array = new JSONArray(data);
-//            json_mapForJSON = new JSONObject();
-//            json_mapForJSON.put("Tablenames", array);
-//            String result = new GsonBuilder().create().toJson(json_mapForJSON);
-//            response.setCharacterEncoding("utf-8");
-//            response.setContentType("application/json");
-//            response.setStatus(HttpServletResponse.SC_OK);
-//            PrintWriter out = response.getWriter();
-//            out.print(result);
-//            out.close();
-//        }
-//        catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
 	/**
 	 * 
 	 * @param request
 	 * @param response
 	 */
+    /*
     public static void clientRequest_InsertDataToDb(HttpServletRequest request, HttpServletResponse response)
     {
         try
         {
-        	initOptions(request);
+        	//initOptions(request);
             logger.info("Found request: "+request.getParameter("get"));
             databasesource.createDatabaseIfNotExists();
             /*
              * Yes, works normally on its own, but for different database models program needs different object-casts
              * because method is not content of normal code within abstract environment.
-             */
-            switch (databaseType)
-            {
-			case sqlite:
-				((DatabaseSQLite)Database.getInstance()).insertData();
-				break;
-			case file:
-				((DatabaseFile)Database.getInstance()).insertData();
-				break;
-			default:
-				break;
+             *
+            switch (databaseType){
+                case sqlite:
+                    ((DatabaseSQLite)Database.getInstance()).insertData();
+                    break;
+                case file:
+                    ((DatabaseFile)Database.getInstance()).insertData();
+                    break;
+                default:
+                    break;
 			}
             response.setCharacterEncoding("utf-8");
             response.setContentType("application/json");
@@ -717,9 +483,10 @@ public class DataUse extends Dao_Main
             response.getWriter().println("{ \"status\": \"ok\"}");
         }
         catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e);
         }
     }
+    */
     /**
      * 
      * @param request
@@ -735,16 +502,10 @@ public class DataUse extends Dao_Main
              * because method is not content of normal code within abstract environment.
              */
             String websitedata = null;
-//            ArrayList<String> json = new ArrayList<String>();
             Map<String, Boolean> json = new HashMap<String, Boolean>();
             if(useJson) {
-//                websitedata = "json:'yes'";
-//            	json.add("json:true");
             	json.put("json", true);
             } else {
-//                websitedata = "json:'no'";
-//            	json.add(false);
-//            	json.add("json:false");
             	json.put("json", false);
             }
             Gson gson = new Gson();
@@ -754,7 +515,7 @@ public class DataUse extends Dao_Main
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().println(websitedata);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e);
         }
     }
     /**
@@ -777,9 +538,9 @@ public class DataUse extends Dao_Main
     		String action = request.getParameter("action");
     		String action_name = request.getParameter("action_name");
     		if(position.isEmpty() && name.isEmpty() && action.isEmpty() && action_name.isEmpty()) {
-    		    ;
     		    response.setStatus(HttpServletResponse.SC_NO_CONTENT);
     		} else {
+                /*
         		databasesource.insertData(new String[] {
         		        position,
         		        name,
@@ -787,6 +548,7 @@ public class DataUse extends Dao_Main
         		        action_name
         		        });
         		response.setStatus(HttpServletResponse.SC_OK);
+                 */
     		}
 //    		response.getWriter().println(websitedata);
     	} catch (Exception e) {
@@ -806,15 +568,16 @@ public class DataUse extends Dao_Main
             String action = request.getParameter("action");
             String action_name = request.getParameter("action_name");
             if(name.isEmpty() && action.isEmpty() && action_name.isEmpty()) {
-                ;
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             } else {
+                /*
                 databasesource.updateData(new String[] {
                         name,
                         action,
                         action_name
                 });
                 response.setStatus(HttpServletResponse.SC_OK);
+                 */
             }
 //    		response.getWriter().println(websitedata);
         } catch (Exception e) {
@@ -837,37 +600,20 @@ public class DataUse extends Dao_Main
                 ;
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
             } else {
+                /*
                 databasesource.removeData(new String[] {
                         name,
                         action,
                         action_name
                 });
                 response.setStatus(HttpServletResponse.SC_OK);
+                 */
             }
 //    		response.getWriter().println(websitedata);
         } catch (Exception e) {
             logger.error("request insert with data", e);
         }
     }
-//    /**
-//     * 
-//     * @param dataRows
-//     * @return
-//     */
-//    private List <List<String>> vectorToArrayList2D (Vector dataRows)
-//    {
-//        List <List<String>> array = new ArrayList<List<String>>();
-//        for (int i=0; i<dataRows.size(); i++)
-//        {
-//             Vector data_cols = (Vector)dataRows.elementAt(i);
-//             ArrayList <String> temp = new ArrayList<String>();
-//             for(int col=0; col<data_cols.size(); col++) {
-//                 temp.add(data_cols.elementAt(col).toString());
-//             }
-//             array.add(temp);
-//        }
-//        return array;
-//    }
     /**
      * 
      * @param fileName
@@ -910,7 +656,7 @@ public class DataUse extends Dao_Main
         		return new ArrayList<String>();
         	}
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error(e);
             return null;
         }
     }
@@ -935,18 +681,5 @@ public class DataUse extends Dao_Main
             text = String.valueOf(newText);
         }
         return text;
-    }
-    /**
-     * init options for server
-     * @param request
-     */
-    static void initOptions(HttpServletRequest request)
-    {
-    	String test = request.getParameter("format");
-    	if((test = request.getParameter("format")) != null && test.equals("json")) {
-    		useJson = true;
-    	} else {
-    		useJson = false;
-    	}
     }
 }

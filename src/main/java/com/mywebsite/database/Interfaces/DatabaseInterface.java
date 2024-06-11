@@ -2,9 +2,7 @@ package main.java.com.mywebsite.database.Interfaces;
 
 import java.util.ArrayList;
 
-import org.json.JSONObject;
-
-import main.java.com.mywebsite.Data.Person;
+import main.java.com.mywebsite.Data.FileSrcData;
 
 public interface DatabaseInterface
 {
@@ -21,44 +19,12 @@ public interface DatabaseInterface
      * get data, but only user basic data
      * @return list with all data, without sensible information like passwords
      */
-    public ArrayList<Person> getData();
+    public ArrayList<FileSrcData> getData();
     /**
      * get all data including passwords
      * @return list with all data
      */
-    public ArrayList<Person> getAllData();
-    /**
-     * login to database, get permission for admin or not
-     * @param name
-     * @param password
-     * @return boolean. true if admin login are correct, false otherwise
-     */
-    public boolean isPermitted(String name, String password);
-    /**
-     * get id of user by name
-     * @param name username
-     * @return id of wanted user
-     */
-    public int getId(String name);
-//    public String generateActualSql(String sqlQuery, Object... parameters);
-//    private ResultSet executeGet(String sql);
-//    private void executeSet(String sql);
-    /**
-     * add entry to db
-     * @param data
-     * @return
-     */
-    public boolean insertData(String [] data);
-    /**
-     * delete entry in db
-     * @param data
-     * @return
-     */
-    public boolean removeData(String [] data);
-    /**
-     * update entry in db
-     * @param data
-     * @return
-     */
-    public boolean updateData(String [] data);
+    public ArrayList<FileSrcData> getAllData();
+    public boolean insertData(FileSrcData fileSrcData);
+    public boolean insertData(FileSrcData fileSrcData, boolean test);
 }
