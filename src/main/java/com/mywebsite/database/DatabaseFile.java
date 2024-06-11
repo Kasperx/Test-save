@@ -90,10 +90,7 @@ public class DatabaseFile extends Database implements Serializable
         }
         return data;
     }
-    public boolean createDatabaseIfNotExists()
-    {
-        return true;
-    }
+
     public void insertData(){
         /*
         int id=0;
@@ -141,11 +138,11 @@ public class DatabaseFile extends Database implements Serializable
     }
 
     @Override
-    public boolean insertData(FileSrcData fileSrcData, boolean test) {
-        return false;
-    }
+	public void connect(){}
 
     @Override
-	public void connect(){}
+    public boolean createDatabaseIfNotExists() {
+        return false;
+    }
 }
 

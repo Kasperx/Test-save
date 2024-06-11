@@ -26,5 +26,4 @@ public interface DatabaseInterface
      */
     public ArrayList<FileSrcData> getAllData();
     public boolean insertData(FileSrcData fileSrcData);
-    public boolean insertData(FileSrcData fileSrcData, boolean test);
 }

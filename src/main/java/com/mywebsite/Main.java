@@ -17,7 +17,7 @@ public class Main extends Dao_DBConnect
         Database database = Database.getInstance();
         List<FileSrcData> fileSrcData = Tools.getObjectFromFile(System.getProperty("user.dir") + File.separator + "postcodes.csv");
         database.createDatabaseIfNotExists();
-        database.insertData(fileSrcData);
+        database.insertData(fileSrcData, true);
         logger.info("Stored "+database.getCountOfData()+" data from file.");
     }
     private static void showHelp ()

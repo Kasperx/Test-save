@@ -106,7 +106,7 @@ public class DatabaseSQLite extends Database
      */
     public boolean createDatabaseIfNotExists()
     {
-        if(permitCreateDB) {
+        if(permitCreateDB && getCountOfData() == 0) {
             //executeSet("remove from table test");
             //executeSet("drop database if exists test");
             //////////////////////////////
