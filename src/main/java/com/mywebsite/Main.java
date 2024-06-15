@@ -29,6 +29,7 @@ public class Main extends Dao_DBConnect{
         }
 
         int expectedDrivingDistance;
+        int cityPostalCode;
 
         //for(String arg: args){
         for(int i=0; i<args.length; i++){
@@ -46,7 +47,7 @@ public class Main extends Dao_DBConnect{
                 database.printAllData();
             } if(args[i].equalsIgnoreCase("-distance")){
                 if(isLastPosition(args, i)) {
-                    logger.info("Number for expected driving distance missing.");
+                    logger.info("Error: Number for expected driving distance missing.");
                     System.exit(1);
                 } else {
                     if (NumberUtils.isDigits(args[i + 1])) {
@@ -64,6 +65,20 @@ public class Main extends Dao_DBConnect{
                                     ? 1.5f
                                     : 2.0f;
                             logger.info("Calculated factor: " + calcFactor);
+                        }
+                    }
+                }
+            } if(args[i].equalsIgnoreCase("-plz")){
+                if(isLastPosition(args, i)) {
+                    logger.info("Error: Number for city postal code.");
+                    System.exit(1);
+                } else {
+                    if (NumberUtils.isDigits(args[i + 1])) {
+                        cityPostalCode = Integer.parseInt(args[i + 1]);
+                        logger.info("City postal code: " + cityPostalCode);
+                        if (cityPostalCode < 0) {
+                            logger.info("Error: Number must be greater than 0.");
+                        } else {
                         }
                     }
                 }
@@ -91,13 +106,14 @@ public class Main extends Dao_DBConnect{
         logger.info("");
         logger.info("### This program is a test program for filtering location data and deciding some insurance parameter with those data ###");
         logger.info(" It will read a src file, store the information to a database and manage those data for parameter decisions.");
-        logger.info("Syntax: [-help | -h | -? | ?] [-print | print-data | print-all]");
+        logger.info("Syntax: [-help | -h | -? | ?] [-print | print-data | print-all] [-distance <number for distance>] [plz <number for plz>]");
         logger.info("\t Options");
         logger.info("\t\t -h/-help/-?/?         show this help and exit");
         logger.info("\t\t -print | print-info   print info of stored data");
         logger.info("\t\t -print-data           print data from database (with limit "+LIMIT_PRINT_DATA+")");
         logger.info("\t\t -print-all            print data from database");
-        logger.info("\t\t -distance             input driven distance per year in km as next parameter with [0-9]{1-10000}");
+        logger.info("\t\t -distance             input expected driving distance per year in km (as next parameter [0-9]{1-})");
+        logger.info("\t\t -plz                  input postal city code (as next parameter [0-9]{1-})");
         logger.info("\nBye");
         System.exit(0);
     }

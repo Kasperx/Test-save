@@ -109,6 +109,8 @@ public abstract class Database extends Dao_DBConnect implements DatabaseInterfac
 
     public abstract int getCountOfData();
 
+    public abstract int getCalcFactor(int cityPostalCode);
+
 	/**
 	 * get properties
 	 * @param filename
