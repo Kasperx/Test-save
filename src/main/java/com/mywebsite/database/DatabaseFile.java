@@ -3,30 +3,33 @@ package main.java.com.mywebsite.database;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import java.util.List;
-import java.util.Map.Entry;
 
 import main.java.com.mywebsite.Data.FileSrcData;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-public class DatabaseFile extends Database implements Serializable
-{  
+public class DatabaseFile extends Database implements Serializable{
+
     int id;
+
     String name;
+
     String lastname;
+
     String pw;
+
     boolean admin;
+
+    static Logger logger = LogManager.getLogger(DatabaseFile.class.getName());
+
     public DatabaseFile()
     {
-        logger = LogManager.getLogger(DatabaseFile.class.getName());
         path = System.getProperty("user.dir")+"/test";
         File dbFile = new File(path);
         try
@@ -135,6 +138,27 @@ public class DatabaseFile extends Database implements Serializable
     @Override
     public boolean insertData(FileSrcData data) {
         return false;
+    }
+
+    @Override
+    public void printInfo() {}
+
+    @Override
+    public void printData() {
+        printData(LIMIT_PRINT_DATA);
+    }
+
+    @Override
+    public void printData(int countData) {}
+
+    @Override
+    public void printAllData() {
+
+    }
+
+    @Override
+    public boolean isDBEmpty() {
+        return getData().isEmpty();
     }
 
     @Override

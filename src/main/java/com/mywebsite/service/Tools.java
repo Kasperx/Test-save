@@ -1,7 +1,6 @@
 package main.java.com.mywebsite.service;
 
 import com.opencsv.CSVReader;
-import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvException;
 import lombok.NoArgsConstructor;
 import main.java.com.mywebsite.Data.FileSrcData;
@@ -10,12 +9,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @NoArgsConstructor
@@ -75,7 +72,7 @@ public class Tools {
         return list;
     }
 
-    public static List<FileSrcData> getObjectFromFile(String path) {
+    public static List<FileSrcData> getDataFromFile(String path) {
         logger.info("Reading info, converting data to object ...");
         if(StringUtils.isNotBlank(path)) {
             List<FileSrcData> fileSrcDataList = new ArrayList<>();
@@ -106,7 +103,7 @@ public class Tools {
                 fileSrcData.setSOMMERZEIT(
                         stringToBoolean(line[count++])
                 );
-                fileSrcData.setACTIVE(line[count++].charAt(0));
+                fileSrcData.setACTIVE(line[count++]);
                 fileSrcDataList.add(fileSrcData);
             }
             logger.info("Got "+fileSrcDataList.size()+" objects from file.");
@@ -124,5 +121,23 @@ public class Tools {
     }
     public static boolean intToBoolean (int bool){
         return bool == 1;
+    }
+
+    /**
+     * convert string to int value
+     * @param text
+     * @return
+     */
+    public static int toInt(String text){
+        try{
+            if(StringUtils.isBlank(text)) {
+                return 0;
+            } else {
+                return Integer.parseInt(text);
+            }
+        } catch (Exception e) {
+            logger.error(e);
+            return 0;
+        }
     }
 }

@@ -33,19 +33,28 @@ import main.java.com.mywebsite.database.DatabaseFile;
 import main.java.com.mywebsite.database.Database;
 import main.java.com.mywebsite.database.DatabaseSQLite;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-public class DataUse extends Dao_DBConnect
-{
+public class DataUse extends Dao_DBConnect{
+
     static Database databasesource;
+
     String httpbase;
+
     static String htmlhead_halfSize;
+
     static String htmlhead_fullSize;
+
     static String htmlend;
+
     static Database.DatabaseType databaseType;
+
     static final boolean useJson = true;
 
-    public DataUse()
-    {
+    static Logger logger = LogManager.getLogger(DataUse.class.getName());
+
+
+    public DataUse(){
         logger = LogManager.getLogger(DataUse.class.getName());
         ///////////////////////////////////////////
         // get libs from online
@@ -85,13 +94,12 @@ public class DataUse extends Dao_DBConnect
 //                + "</head>"
 //                + "<body class=\"container\">"
 //                ;
-        htmlend = ""
-                + "</body>"
-                ;
+        htmlend = "</body>";
         databaseType = Database.DatabaseType.getValue();
         databasesource = Database.getInstance(databaseType);
         databasesource.setHeaderInUppercaseCharacter(true);
     }
+
     /**
      * 
      * @param httpbase
@@ -100,6 +108,7 @@ public class DataUse extends Dao_DBConnect
     {
         this.httpbase = httpbase;
     }
+
     /**
      * 
      * @param request
@@ -119,11 +128,9 @@ public class DataUse extends Dao_DBConnect
             response.setCharacterEncoding("utf-8");
             if(wantedFileFromClient.endsWith(".html")) {
             	response.setContentType("text/html");
-            }
-            else if(wantedFileFromClient.endsWith(".css")) {
+            }else if(wantedFileFromClient.endsWith(".css")) {
                 response.setContentType("text/css");
-            }
-            else if(wantedFileFromClient.endsWith(".js")){
+            }else if(wantedFileFromClient.endsWith(".js")){
                 response.setContentType("application/json");
             }
             response.addHeader("Access-Control-Allow-Origin", "*");
@@ -141,10 +148,8 @@ public class DataUse extends Dao_DBConnect
      * @param request
      * @param response
      */
-    public void clientRequest_WebsiteFromBackend(HttpServletRequest request, HttpServletResponse response)
-    {
-        try
-        {
+    public void clientRequest_WebsiteFromBackend(HttpServletRequest request, HttpServletResponse response){
+        try{
         	//initOptions(request);
             logger.info("Found request: "+request.getParameter("get"));
             response.setCharacterEncoding("utf-8");
@@ -164,8 +169,7 @@ public class DataUse extends Dao_DBConnect
             websitedata += "</table>";
             websitedata += htmlend;
             response.getWriter().println(websitedata);
-        }
-        catch (Exception e) {
+        }catch (Exception e) {
             logger.error(e);
         }
     }
@@ -174,8 +178,7 @@ public class DataUse extends Dao_DBConnect
      * @param request
      * @param response
      */
-    public static void clientRequest_Weather(HttpServletRequest request, HttpServletResponse response)
-    {
+    public static void clientRequest_Weather(HttpServletRequest request, HttpServletResponse response){
         try {
         	//initOptions(request);
             logger.info("Found request: "+request.getParameter("get"));
@@ -203,8 +206,7 @@ public class DataUse extends Dao_DBConnect
             BufferedReader rd = new BufferedReader(new InputStreamReader(resp.getEntity().getContent()));
             String line = "";
             String textView = "";
-            while ((line = rd.readLine()) != null)
-            {    
+            while ((line = rd.readLine()) != null){
                 textView += line;
                 logger.info(textView);
             }

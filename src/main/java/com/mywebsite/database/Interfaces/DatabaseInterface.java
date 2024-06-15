@@ -1,6 +1,7 @@
 package main.java.com.mywebsite.database.Interfaces;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import main.java.com.mywebsite.Data.FileSrcData;
 
@@ -26,4 +27,13 @@ public interface DatabaseInterface
      */
     public ArrayList<FileSrcData> getAllData();
     public boolean insertData(FileSrcData fileSrcData);
+
+    public void printInfo();
+    public void printData();
+
+    public void printData(int countData);
+
+    public void printAllData();
+
+    public boolean isDBEmpty();
 }
